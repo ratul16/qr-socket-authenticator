@@ -1,49 +1,37 @@
-{
-  "users": [
-    {
-      "id": "550e8400-e29b-41d4-a716-446655440000",
-      "email": "john.doe@example.com",
-      "password": "Password123!",
-      "created_at": "2024-01-15T08:30:00Z",
-      "last_login": "2024-01-15T10:45:23Z",
-      "name": "John Doe",
-      "avatar": "https://example.com/avatars/john.jpg"
-    },
-    {
-      "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
-      "email": "sarah.smith@example.com",
-      "password": "SecurePass456@",
-      "created_at": "2024-01-14T15:20:00Z",
-      "last_login": "2024-01-15T09:30:15Z",
-      "name": "Sarah Smith",
-      "avatar": "https://example.com/avatars/sarah.jpg"
-    },
-    {
-      "id": "63c66536-f427-4689-9479-8ed98e5f5c0e",
-      "email": "mike.wilson@example.com",
-      "password": "MikeW789#",
-      "created_at": "2024-01-13T12:45:00Z",
-      "last_login": "2024-01-15T08:15:45Z",
-      "name": "Mike Wilson",
-      "avatar": "https://example.com/avatars/mike.jpg"
-    },
-    {
-      "id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
-      "email": "emma.davis@example.com",
-      "password": "EmmaD321$",
-      "created_at": "2024-01-12T09:15:00Z",
-      "last_login": "2024-01-15T11:20:30Z",
-      "name": "Emma Davis",
-      "avatar": "https://example.com/avatars/emma.jpg"
-    },
-    {
-      "id": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
-      "email": "alex.brown@example.com",
-      "password": "AlexB567&",
-      "created_at": "2024-01-11T14:50:00Z",
-      "last_login": "2024-01-15T07:55:10Z",
-      "name": "Alex Brown",
-      "avatar": "https://example.com/avatars/alex.jpg"
-    }
-  ]
-}
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "john.doe@example.com",
+    "password": "Password123!",
+    "name": "John Doe",
+    "avatar": "https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80"
+  },
+  {
+    "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+    "email": "sarah.smith@example.com",
+    "password": "SecurePass456@",
+    "name": "Sarah Smith",
+    "avatar": "https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80"
+  },
+  {
+    "id": "63c66536-f427-4689-9479-8ed98e5f5c0e",
+    "email": "mike.wilson@example.com",
+    "password": "MikeW789#",
+    "name": "Mike Wilson",
+    "avatar": "https://example.com/avatars/mike.jpg"
+  },
+  {
+    "id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+    "email": "emma.davis@example.com",
+    "password": "EmmaD321$",
+    "name": "Emma Davis",
+    "avatar": "https://example.com/avatars/emma.jpg"
+  },
+  {
+    "id": "1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed",
+    "email": "alex.brown@example.com",
+    "password": "AlexB567&",
+    "name": "Alex Brown",
+    "avatar": "https://example.com/avatars/alex.jpg"
+  }
+]
