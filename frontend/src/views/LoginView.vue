@@ -3,43 +3,56 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import ProgressBar from 'primevue/progressbar'
 import VueQrcode from 'vue-qrcode'
 
-const text = ref('text-to-encode')
+// Constants
+const TIMER_DURATION = 45
+const CODE_LENGTH = 6
 
-const TOTAL_TIME = 45 // 2 minutes in seconds
-const timeLeft = ref(TOTAL_TIME)
+// Refs
+const timeLeft = ref(TIMER_DURATION)
 const progress = ref(100)
-const authCode = ref(456874)
-let intervalId = null
+const authCode = ref(generateAuthCode())
+const intervalId = ref(null)
 
-const startTimer = () => {
-  timeLeft.value = TOTAL_TIME
-  progress.value = 100
-
-  intervalId = setInterval(() => {
+// Timer Functions
+function startTimer() {
+  resetTimer()
+  intervalId.value = setInterval(() => {
     if (timeLeft.value > 0) {
       timeLeft.value--
-      progress.value = (timeLeft.value / TOTAL_TIME) * 100
+      progress.value = (timeLeft.value / TIMER_DURATION) * 100
     } else {
-      // Reset timer when it reaches 0
-      timeLeft.value = TOTAL_TIME
-      progress.value = 100
+      authCode.value = generateAuthCode()
+      resetTimer()
     }
   }, 1000)
 }
 
-const formatTime = (seconds) => {
+function resetTimer() {
+  timeLeft.value = TIMER_DURATION
+  progress.value = 100
+}
+
+// Utility Functions
+function generateAuthCode() {
+  return Math.floor(Math.random() * Math.pow(10, CODE_LENGTH))
+    .toString()
+    .padStart(CODE_LENGTH, '0')
+}
+
+function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60)
   const remainingSeconds = seconds % 60
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
 }
 
+// Lifecycle Hooks
 onMounted(() => {
   startTimer()
 })
 
 onUnmounted(() => {
-  if (intervalId) {
-    clearInterval(intervalId)
+  if (intervalId.value) {
+    clearInterval(intervalId.value)
   }
 })
 </script>
@@ -49,23 +62,36 @@ onUnmounted(() => {
     <div class="login-card">
       <div class="image-section"></div>
       <div class="login-content">
-        <h1 class="title">Welcome !</h1>
-        <p class="subtitle">Scan this QR code in-app to sign.</p>
-        <div class="qr-code">
-          <vue-qrcode
-            version="4"
-            scale="4"
-            maskPattern="5"
-            type="image/webp"
-            quality="1"
-            :value="text"
-          />
-        </div>
-        <p>Or enter this code:</p>
-        <div class="auth-code text-6xl font-bold">{{ authCode }}</div>
-        <div class="timer-container">
-          {{ formatTime(timeLeft) }}
-          <ProgressBar :value="progress" :show-value="false" style="height: 6px" />
+        <header class="text-center">
+          <h1 class="title">Welcome!</h1>
+          <p class="subtitle">Scan this QR code in-app to sign in</p>
+        </header>
+
+        <div class="authentication-section">
+          <!-- QR Code Section -->
+          <div class="qr-code">
+            <vue-qrcode
+              :value="authCode"
+              version="3"
+              scale="5"
+              maskPattern="3"
+              type="image/webp"
+              quality="1"
+            />
+          </div>
+
+          <!-- Manual Code Section -->
+          <div class="manual-code-section">
+            <p class="manual-code-label">Or enter this code:</p>
+            <div class="auth-code text-6xl font-bold">{{ authCode }}</div>
+          </div>
+
+          <!-- Timer Section -->
+          <div class="timer-container">
+            <span class="timer-text">{{ formatTime(timeLeft) }}</span>
+            <ProgressBar :value="progress" :show-value="false" class="timer-bar" />
+            <div class="mt-3">http://localhost:5173/authenticator</div>
+          </div>
         </div>
       </div>
     </div>
@@ -77,52 +103,72 @@ onUnmounted(() => {
   min-height: 100vh;
   display: flex;
   width: 100%;
-  /* max-width: 1200px; */
   background: #fff;
-  /* border-radius: 1rem; */
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .login-content {
   flex: 1;
-  padding: 2rem;
+  padding: 3rem;
   background-color: #2b2d42;
   color: white;
-
-  .qr-code {
-    width: 200px;
-    height: 200px;
-    display: flex;
-    justify-content: center;
-    border-radius: 1rem;
-    overflow: hidden;
-    background-color: white;
-  }
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .image-section {
   flex: 2;
-  background-image: url('https://images.unsplash.com/39/wdXqHcTwSTmLuKOGz92L_Landscape.jpg?q=80&w=2049&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+  background-image: url('https://images.unsplash.com/39/wdXqHcTwSTmLuKOGz92L_Landscape.jpg?q=80&w=2049&auto=format&fit=crop');
   background-size: cover;
   background-position: center;
   min-height: 600px;
 }
 
-.logo-section {
+.authentication-section {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 2rem;
+  gap: 2rem;
+}
+.qr-code {
+  width: 200px;
+  height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  border-radius: 1rem;
+  overflow: hidden;
 }
 
-.logo {
-  height: 40px;
-  margin-right: 1rem;
+.manual-code-section {
+  text-align: center;
 }
 
-.company-name {
+.manual-code-label {
+  color: #8d99ae;
+  margin-bottom: 0.5rem;
+}
+
+.timer-container {
+  width: 100%;
+  max-width: 300px;
+  text-align: center;
+}
+
+.timer-text {
+  display: block;
+  margin-bottom: 0.5rem;
   font-size: 1.2rem;
   color: #8d99ae;
+}
+
+.timer-bar {
+  height: 6px;
+  border-radius: 3px;
 }
 
 .title {
@@ -133,7 +179,15 @@ onUnmounted(() => {
 
 .subtitle {
   color: #8d99ae;
-  margin-bottom: 2rem;
+}
+
+:deep(.p-progressbar) {
+  background: rgba(141, 153, 174, 0.2);
+}
+
+:deep(.p-progressbar-value) {
+  background: #8d99ae;
+  transition: width 1s linear;
 }
 
 @media (max-width: 768px) {
