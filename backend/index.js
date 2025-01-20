@@ -41,14 +41,14 @@ function generateUniqueTVId() {
 }
 
 io.on('connection', (socket) => {
-  console.log(`A user connected with ID: ${socket.id}`);
+  console.log(`New socket connection - Socket ID: ${socket.id}`);
 
   socket.on('register-tv', () => {
     const tvId = generateUniqueTVId();
     tvSockets.set(tvId, socket);
     socket.tvId = tvId;
     socket.emit('tv-registered', tvId);
-    console.log(`TV registered with ID: ${tvId}`);
+    console.log(`TV Registration - Socket ID: ${socket.id}, Assigned TV ID: ${tvId}`);
   });
 
   socket.on('connect-to-tv', (tvId) => {
