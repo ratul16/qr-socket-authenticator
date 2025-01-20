@@ -33,7 +33,7 @@ const mobileSockets = new Map();
 
 // Function to generate a unique 6-digit TV ID
 function generateUniqueTVId() {
-  let tvId;
+  let tvId; W
   do {
     tvId = Math.floor(100000 + Math.random() * 900000).toString(); // Generates a 6-digit number
   } while (tvSockets.has(tvId)); // Ensure uniqueness

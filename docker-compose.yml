@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wellnesstv-backend
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+      - /etc/letsencrypt:/etc/letsencrypt:ro # Mount SSL certificates as read-only
+    ports:
+      - "443:443"
+    environment:
+      - NODE_ENV=production
+      - PORT=443
+    restart: unless-stopped
+
+  tv-app:
+    build:
+      context: ./frontend/tv-app
+      dockerfile: Dockerfile
+    container_name: wellnesstv-tv-app
+    volumes:
+      - ./frontend/tv-app:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - "8080:80" # Map container's nginx port to host
+    environment:
+      - VITE_SOCKET_URL=wss://login.wellnesstv.co.uk
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  auth-app:
+    build:
+      context: ./backend/app
+      dockerfile: Dockerfile
+    container_name: wellnesstv-auth-app
+    volumes:
+      - ./backend/app:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - "8081:80" # Different port from TV app
+    environment:
+      - VITE_SOCKET_URL=wss://login.wellnesstv.co.uk
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  default:
+    name: wellnesstv-network
+    driver: bridge
