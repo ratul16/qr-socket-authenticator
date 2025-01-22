@@ -9,6 +9,7 @@ import Toast from 'primevue/toast';
 
 
 import App from './App.vue'
+import router from './router'
 
 const app = createApp(App)
 
@@ -23,5 +24,7 @@ app.use(PrimeVue, {
 });
 app.use(ToastService);
 app.component('Toast', Toast);
+
+app.use(router)
 
 app.mount('#app')
