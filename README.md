@@ -1,6 +1,6 @@
 # QR Socket Auth
 
-QR Socket Auth is an advanced authentication system designed to provide a seamless login experience through QR code scanning. Users can effortlessly scan a QR code displayed on their app screen using their mobile devices, enter their credentials, and securely log in to their account via WebSocket connections.
+QR Socket Auth is an authentication system designed to provide a seamless login experience through QR code scanning. Users can effortlessly scan a QR code displayed on their app screen using their mobile devices, enter their credentials, and securely log in to their account via WebSocket connections.
 
 ## Key Features
 - Generate and display QR codes on the app interface
