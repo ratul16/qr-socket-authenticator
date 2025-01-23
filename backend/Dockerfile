@@ -1,18 +1,28 @@
-# Backend Dockerfile
 FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
-# Copy package files
+# Install pnpm globally
+RUN npm install -g pnpm
+
+# Copy root package files
 COPY package*.json ./
+COPY pnpm-lock.yaml ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies at root level
+RUN pnpm install
 
-# Copy source code
+# Copy the rest of the application
 COPY . .
 
-# Expose the port your app runs on
-EXPOSE 443
+# Install dependencies in the app directory
+WORKDIR /usr/src/app/app
+RUN if [ -f "pnpm-lock.yaml" ]; then pnpm install; fi
 
-CMD ["node", "index.js"]
+# Go back to root directory
+WORKDIR /usr/src/app
+
+EXPOSE 5000
+EXPOSE 3001
+
+# We'll specify the CMD in docker-compose for each service
