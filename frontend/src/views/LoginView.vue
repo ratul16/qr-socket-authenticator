@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { io } from 'socket.io-client'
+import { useAuthStore } from '@/stores/auth'
 
 import Message from 'primevue/message'
 import VueQrcode from 'vue-qrcode'
@@ -27,28 +28,28 @@ const registerApp = () => {
 }
 
 const loginMessage = (success) => {
-  console.log('Login result:', success)
+  // console.log('Login result:', success)
   socket.emit('login-result', success)
 }
 
 const setupSocketListeners = () => {
   socket.on('connect', () => {
     isConnected.value = true
-    console.log('Connected to server', socket.connected)
+    // console.log('Connected to server', socket.connected)
   })
 
   socket.on('disconnect', () => {
     isConnected.value = false
-    console.log('Disconnected from server')
+    // console.log('Disconnected from server')
   })
 
   socket.on('app-registered', (id) => {
     appId.value = id
-    console.log(`Received App ID: ${id}`)
+    // console.log(`Received App ID: ${id}`)
   })
 
   socket.on('receive-credentials', (credentials) => {
-    console.log('Received credentials:', credentials)
+    // console.log('Received credentials:', credentials)
     login(credentials.email, credentials.password)
   })
 }
@@ -69,7 +70,7 @@ const refreshAppRegistration = () => {
     registerApp()
     resetTimer()
     message.value = null
-    console.log('App registration refreshed')
+    // console.log('App registration refreshed')
   } catch (error) {
     console.error('Failed to refresh app registration:', error)
     setTimeout(refreshAppRegistration, 5000)
@@ -96,6 +97,8 @@ const users = [
     role: 'user',
   },
 ]
+const authStore = useAuthStore()
+
 // Login Function
 const login = async (email, password) => {
   try {
@@ -110,14 +113,18 @@ const login = async (email, password) => {
         status: true,
         message: `Welcome ${user.name}, you are logged in as ${user.role}`,
       }
+      // Add user details to Pinia store
+      authStore.setUserDetails(user)
+      authStore.setLoginStatus(true)
+      router.push({ name: 'profile' })
     } else {
       loginMessage({
         status: false,
-        message: 'Invalid email or password',
+        message: 'Invalid email or password. Please try again.',
       })
       message.value = {
         status: false,
-        message: 'Invalid email or password',
+        message: 'Invalid email or password. Please try again.',
       }
     }
   } catch (error) {
@@ -200,7 +207,7 @@ onUnmounted(() => {
             >
             <div class="auth-code text-6xl font-bold">{{ appId }}</div>
           </div>
-          <Message v-if="message" :severity="message.status ? 'success' : 'danger'">
+          <Message v-if="message" :severity="message.status ? 'success' : 'error'">
             {{ message.message }}
           </Message>
         </div>

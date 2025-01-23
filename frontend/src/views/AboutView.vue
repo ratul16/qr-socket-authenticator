@@ -1,4 +1,21 @@
-<script></script>
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import Button from 'primevue/button'
+
+const authStore = useAuthStore()
+const user = ref({})
+const router = useRouter()
+
+const returnHome = () => {
+  router.push('/')
+}
+
+onMounted(() => {
+  user.value = authStore.getUser
+})
+</script>
 
 <template>
   <div class="profile">
@@ -8,12 +25,14 @@
         alt="Profile Picture"
         class="profile-image shadow-6"
       />
-      <h1 class="profile-title">About Me</h1>
-      <p class="profile-description">
+      <h1 v-if="authStore.user" class="profile-title">{{ authStore.user.name || '' }}</h1>
+      <h2 class="profile-title">About Me</h2>
+      <p class="profile-description text-justify mb-4">
         I'm a software engineer with a passion for building products that make a difference. I have
         experience working with a variety of technologies, including JavaScript, Python, and SQL. In
         my free time, I enjoy hiking, reading, and playing the guitar.
       </p>
+      <Button class="w-full" label="Go to Home" @click="returnHome" />
     </div>
   </div>
 </template>

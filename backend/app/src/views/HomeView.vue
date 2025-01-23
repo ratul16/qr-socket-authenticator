@@ -36,11 +36,7 @@ const state = ref({
   auth: {
     success: false,
     showMessage: false,
-    errorMessage: '',
-    status: {
-      status: false,
-      message: '',
-    },
+    message: '',
   },
 })
 
@@ -65,7 +61,7 @@ const connectToApp = (id) => {
 
   socket.emit('connect-to-app', id)
   state.value.connection.appId = id
-  console.log('Connecting to app:', id)
+  // console.log('Connecting to app:', id)
 }
 
 const sendCredentials = () => {
@@ -83,7 +79,7 @@ const sendCredentials = () => {
 const handleConnectionError = () => {
   state.value.connection.isAppConnected = false
   state.value.auth.showMessage = true
-  state.value.auth.errorMessage = 'Connection failed. Please try again.'
+  state.value.auth.message = 'Connection failed. Please try again.'
 
   setTimeout(() => {
     state.value.auth.showMessage = false
@@ -104,10 +100,9 @@ const resetState = () => {
       passwordVisible: false,
     },
     auth: {
-      success: false,
+      status: false,
       showMessage: false,
       errorMessage: '',
-      status: { status: false, message: '' },
     },
   }
 
@@ -120,13 +115,13 @@ const resetState = () => {
 const setupSocketListeners = () => {
   socket.on('connect', () => {
     state.value.connection.isConnected = true
-    console.log('Connected to server:', socket.id)
+    // console.log('Connected to server:', socket.id)
   })
 
   socket.on('disconnect', () => {
     state.value.connection.isConnected = false
     state.value.connection.isAppConnected = false
-    console.log('Disconnected from server')
+    // console.log('Disconnected from server')
   })
 
   socket.on('connected-to-app', (success) => {
@@ -135,26 +130,16 @@ const setupSocketListeners = () => {
   })
 
   socket.on('login-result-client', (result) => {
-    state.value.auth.status = result
-    state.value.auth.success = result.status
-
-    if (!result.status) {
-      state.value.auth.showMessage = true
-      state.value.form.email = ''
-      state.value.form.password = ''
-      state.value.auth.errorMessage = result.message
-
-      setTimeout(() => {
-        state.value.auth.showMessage = false
-      }, CONNECTION_TIMEOUT)
-    }
+    state.value.auth.status = result.status
+    state.value.auth.message = result.message
+    state.value.auth.showMessage = true
   })
 }
 
 // Initialize component
 const initializeComponent = async () => {
   const id = route.params?.id
-  console.log('Received ID:', id)
+  // console.log('Received ID:', id)
 
   if (id?.length === 6) {
     connectToApp(id)
@@ -189,68 +174,84 @@ onUnmounted(() => {
     <div class="login-card">
       <div class="image-section" />
       <div class="login-content">
-        <header class="header-section">
-          <h1 class="title">Log in to App</h1>
-          <Badge
-            class="capitalize"
-            :value="connectionStatus.text"
-            :severity="connectionStatus.severity"
-          />
-        </header>
-
-        <div class="auth-form">
-          <div class="otp-section">
-            <label for="otp">Enter the 6 digit code to connect</label>
-            <InputOtp
-              id="otp"
-              v-model="state.connection.connectCode"
-              :length="6"
-              :disabled="state.connection.isAppConnected"
-              integerOnly
-              class="w-full"
+        <div v-if="!state.auth.status">
+          <header class="header-section">
+            <h1 class="title">Log in to App</h1>
+            <Badge
+              class="capitalize"
+              :value="connectionStatus.text"
+              :severity="connectionStatus.severity"
             />
-          </div>
+          </header>
 
-          <div class="credentials-section">
-            <div class="form-group">
-              <label for="email">Email</label>
-              <InputText
-                id="email"
-                v-model="state.form.email"
-                :disabled="!state.connection.isAppConnected"
+          <div class="auth-form">
+            <div class="otp-section">
+              <label for="otp">Enter the 6 digit code to connect</label>
+              <InputOtp
+                id="otp"
+                v-model="state.connection.connectCode"
+                :length="6"
+                :disabled="state.connection.isAppConnected"
+                integerOnly
                 class="w-full"
               />
             </div>
 
-            <div class="form-group">
-              <label for="password">Password</label>
-              <InputGroup>
+            <div class="credentials-section">
+              <div class="form-group">
+                <label for="email">Email</label>
                 <InputText
-                  id="password"
-                  v-model="state.form.password"
-                  :type="state.form.passwordVisible ? 'text' : 'password'"
+                  id="email"
+                  v-model="state.form.email"
                   :disabled="!state.connection.isAppConnected"
                   class="w-full"
                 />
-                <InputGroupAddon @click="togglePasswordVisibility">
-                  <i class="pi" :class="state.form.passwordVisible ? 'pi-eye' : 'pi-eye-slash'" />
-                </InputGroupAddon>
-              </InputGroup>
+              </div>
+
+              <div class="form-group">
+                <label for="password">Password</label>
+                <InputGroup>
+                  <InputText
+                    id="password"
+                    v-model="state.form.password"
+                    :type="state.form.passwordVisible ? 'text' : 'password'"
+                    :disabled="!state.connection.isAppConnected"
+                    class="w-full"
+                  />
+                  <InputGroupAddon @click="togglePasswordVisibility">
+                    <i class="pi" :class="state.form.passwordVisible ? 'pi-eye' : 'pi-eye-slash'" />
+                  </InputGroupAddon>
+                </InputGroup>
+              </div>
+
+              <Button
+                class="w-full submit-button"
+                label="Submit"
+                :disabled="!isFormValid"
+                @click="sendCredentials"
+              />
+
+              <Message
+                class="mt-3"
+                v-if="state.auth.showMessage && !state.auth.status"
+                severity="error"
+              >
+                {{ state.auth.message }}
+              </Message>
             </div>
-
-            <Button
-              class="w-full submit-button"
-              label="Submit"
-              :disabled="!isFormValid"
-              @click="sendCredentials"
-            />
-
-            <Message
-              v-if="state.auth.showMessage"
-              severity="error"
-              :message="state.auth.errorMessage"
-            />
           </div>
+        </div>
+        <div v-else class="login-success">
+          <div class="flex flex-column gap-2">
+            <h2 class="mb-2 capitalize">
+              {{ state.auth.message || 'Login Successful' }}
+            </h2>
+            <p class="text-muted mb-4">
+              You can close this window now, or click the button below to connect to a different
+              App.
+            </p>
+          </div>
+          <Button class="w-full" label="Login to Another App" @click="resetState" />
         </div>
       </div>
     </div>
@@ -285,6 +286,7 @@ onUnmounted(() => {
   background-color: #2b2d42;
   color: white;
   display: flex;
+  justify-content: center;
   flex-direction: column;
   gap: 2rem;
 }
