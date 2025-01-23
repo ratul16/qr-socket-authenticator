@@ -2,16 +2,16 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { io } from 'socket.io-client'
-import { useToast } from 'primevue/usetoast'
-import ProgressBar from 'primevue/progressbar'
+
+import Message from 'primevue/message'
 import VueQrcode from 'vue-qrcode'
+import OverlayBadge from 'primevue/overlaybadge'
 
 // Constants
 const serverUrl = 'http://localhost:443'
 const router = useRouter()
 const socket = io(serverUrl)
-const toast = useToast()
-const TIMER_DURATION = 3000
+const TIMER_DURATION = 45
 
 // Refs
 const isConnected = ref(false)
@@ -19,6 +19,7 @@ const appId = ref(null)
 const timeLeft = ref(TIMER_DURATION)
 const progress = ref(100)
 const refreshInterval = ref(null)
+const message = ref(null)
 
 // Socket event handlers
 const registerApp = () => {
@@ -58,6 +59,7 @@ function resetTimer() {
   progress.value = 100
 }
 
+// Refresh App Registration
 const refreshAppRegistration = () => {
   try {
     socket.removeAllListeners()
@@ -66,6 +68,7 @@ const refreshAppRegistration = () => {
     setupSocketListeners()
     registerApp()
     resetTimer()
+    message.value = null
     console.log('App registration refreshed')
   } catch (error) {
     console.error('Failed to refresh app registration:', error)
@@ -73,58 +76,71 @@ const refreshAppRegistration = () => {
   }
 }
 
+const users = [
+  {
+    name: 'John Anderson',
+    email: 'john.admin@test.com',
+    password: 'Admin123!',
+    role: 'admin',
+  },
+  {
+    name: 'Sarah Mitchell',
+    email: 'sarah.manager@test.com',
+    password: 'Manager456!',
+    role: 'manager',
+  },
+  {
+    name: 'David Wilson',
+    email: 'david.user@test.com',
+    password: 'User789!',
+    role: 'user',
+  },
+]
+// Login Function
 const login = async (email, password) => {
   try {
-    const response = await fetch('http://localhost:5173/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    })
+    const user = users.find((user) => user.email === email && user.password === password)
 
-    if (response.ok) {
+    if (user) {
       loginMessage({
         status: true,
-        message: 'You are Logged In to the App',
+        message: `Welcome ${user.name}, you are logged in as ${user.role}`,
       })
-      toast.add({
-        severity: 'success',
-        summary: 'Login Successful',
-        detail: 'You have been logged in.',
-        life: 3000,
-      })
+      message.value = {
+        status: true,
+        message: `Welcome ${user.name}, you are logged in as ${user.role}`,
+      }
     } else {
-      toast.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'You do not have access to use this application. Please contact an administrator',
-        life: 3000,
-      })
       loginMessage({
         status: false,
-        message: 'You do not have access to use this application. Please contact an administrator',
+        message: 'Invalid email or password',
       })
+      message.value = {
+        status: false,
+        message: 'Invalid email or password',
+      }
     }
   } catch (error) {
     console.error('Login error:', error)
     loginMessage({
       status: false,
-      message: 'Login failed. Please check your email and password and try again.',
+      message: 'Login failed. Please try again.',
     })
-    toast.add({
-      severity: 'error',
-      summary: 'Login Failed',
-      detail: 'Login failed. Please check your email and password and try again.',
-      life: 3000,
-    })
+    message.value = {
+      status: false,
+      message: 'Login failed. Please try again.',
+    }
   }
 }
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60)
   const remainingSeconds = seconds % 60
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+
+  if (minutes === 0) return `${remainingSeconds}s`
+  if (remainingSeconds === 0) return `${minutes} min`
+
+  return `${minutes} min ${remainingSeconds}s`
 }
 
 // Lifecycle Hooks
@@ -163,32 +179,30 @@ onUnmounted(() => {
 
         <div class="authentication-section">
           <!-- QR Code Section -->
-          <div class="qr-code">
-            <vue-qrcode
-              :value="`http://localhost:5173/${appId}`"
-              version="3"
-              scale="5"
-              maskPattern="3"
-              type="image/webp"
-              quality="1"
-            />
-          </div>
+          <OverlayBadge size="large" :value="formatTime(timeLeft)" severity="primary">
+            <div class="qr-code">
+              <vue-qrcode
+                :value="`http://localhost:5173/${appId}`"
+                version="3"
+                scale="5"
+                maskPattern="3"
+                type="image/webp"
+                quality="1"
+              />
+            </div>
+          </OverlayBadge>
 
           <!-- Manual Code Section -->
           <div class="manual-code-section">
-            <p class="manual-code-label">Or enter this code:</p>
-            <div class="auth-code text-6xl font-bold">{{ appId }}</div>
-            <!-- <div class="auth-code text-6xl font-bold">{{ authCode }}</div> -->
-          </div>
-
-          <!-- Timer Section -->
-          <div class="timer-container">
-            <span class="timer-text">{{ formatTime(timeLeft) }}</span>
-            <ProgressBar :value="progress" :show-value="false" class="timer-bar" />
+            <p class="manual-code-label">Or enter this code in the below link:</p>
             <a :href="`http://localhost:5174/${appId}`" target="_blank" class="mt-3"
               >http://localhost:5174/{{ appId }}</a
             >
+            <div class="auth-code text-6xl font-bold">{{ appId }}</div>
           </div>
+          <Message v-if="message" :severity="message.status ? 'success' : 'danger'">
+            {{ message.message }}
+          </Message>
         </div>
       </div>
     </div>
@@ -206,6 +220,7 @@ onUnmounted(() => {
 }
 
 .login-content {
+  position: relative;
   flex: 1;
   padding: 3rem;
   background-color: #2b2d42;
@@ -228,11 +243,11 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  gap: 1rem;
 }
 .qr-code {
-  width: 200px;
-  height: 200px;
+  width: 190px;
+  height: 190px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -250,7 +265,7 @@ onUnmounted(() => {
   margin-bottom: 0.5rem;
 }
 
-.timer-container {
+.reset-timer {
   width: 100%;
   max-width: 300px;
   text-align: center;
@@ -263,11 +278,6 @@ onUnmounted(() => {
   color: #8d99ae;
 }
 
-.timer-bar {
-  height: 6px;
-  border-radius: 3px;
-}
-
 .title {
   font-size: 2.5rem;
   margin-bottom: 1rem;
@@ -278,13 +288,13 @@ onUnmounted(() => {
   color: #8d99ae;
 }
 
-:deep(.p-progressbar) {
-  background: rgba(141, 153, 174, 0.2);
-}
-
-:deep(.p-progressbar-value) {
-  background: #8d99ae;
-  transition: width 1s linear;
+:deep(.p-overlaybadge .p-badge) {
+  width: 40px;
+  height: 40px;
+  font-size: 1rem;
+  border-radius: 50%;
+  background-color: white;
+  outline-style: none;
 }
 
 @media (max-width: 768px) {
@@ -292,8 +302,13 @@ onUnmounted(() => {
     flex-direction: column;
   }
 
+  .title {
+    font-size: 2rem;
+    margin: 0;
+  }
+
   .image-section {
-    min-height: 300px;
+    min-height: 250px;
   }
 
   .login-content {
