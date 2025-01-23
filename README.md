@@ -4,6 +4,8 @@ QR Socket Auth is an authentication system designed to provide a seamless login 
 
 ## Preview
 
+[<video controls src="" title="Title"></video>](https://github.com/ratul16/qr-socket-authenticator/blob/main/github/preview.mp4)
+
 <video src="./github/preview.mp4" controls></video>
 
 ## Key Features
